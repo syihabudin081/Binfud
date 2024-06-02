@@ -4,6 +4,7 @@ import com.example.Binarfud.security.jwt.JwtAuthTokenFilter;
 
 import com.example.Binarfud.security.service.UserDetailsServiceImpl;
 import com.example.Binarfud.service.UsersService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,19 +54,24 @@ public class SecurityConfig implements WebMvcConfigurer {
     public SecurityFilterChain filterChain (HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
 //                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth
-                                .requestMatchers("/api/auth/signup").permitAll()
-                                .requestMatchers("/api/auth/signin").permitAll()
-                                .requestMatchers("/api/auth/loginoauth").permitAll()
-                                .requestMatchers("/api/auth/login").permitAll()
-                                .requestMatchers("/api/auth/oauth2/success").permitAll()
-                                .requestMatchers("/api/auth/oauth2/redirect").permitAll()
+                                .requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers(
                                         "/swagger-ui.html","/swagger-ui/**",
                                         "/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
+                )
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling
+                                .authenticationEntryPoint((request, response, authException) -> {
+                                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                                })
+                                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden");
+                                })
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class)
