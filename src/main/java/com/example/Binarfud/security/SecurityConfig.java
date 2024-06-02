@@ -25,6 +25,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -55,7 +56,10 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("/api/auth/loginoauth").permitAll()
                                 .requestMatchers("/api/auth/login").permitAll()
                                 .requestMatchers("/api/auth/oauth2/success").permitAll()
-                                .requestMatchers("/login").permitAll()
+                                .requestMatchers("/api/auth/oauth2/redirect").permitAll()
+                                .requestMatchers(
+                                        "/swagger-ui.html","/swagger-ui/**",
+                                        "/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -139,5 +143,14 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .favorParameter(false)
                 .ignoreAcceptHeader(true)
                 .defaultContentType(MediaType.APPLICATION_JSON);
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("*") // You can restrict the origins here
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }
